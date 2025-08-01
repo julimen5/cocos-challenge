@@ -11,8 +11,6 @@ export interface Position {
     currentPrice: number;
     value: number;
     performance: number;
-    side: 'long' | 'short';
-    realPerformance: number;
 }
 
 export interface PortfolioSummary {

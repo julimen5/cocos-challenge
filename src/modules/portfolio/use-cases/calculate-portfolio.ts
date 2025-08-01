@@ -5,29 +5,26 @@ import { logger } from '@/lib/logger';
 
 export async function calculatePortfolio(userId: string): Promise<PortfolioSummary> {
     const log = logger.child({ userId, scope: 'calculatePortfolio' });
-    try {
-        // Get available cash
-        const availableCash = await getAvailableCash(userId);
+    // Get available cash
+    const availableCash = await getAvailableCash(userId);
+    log.info('Available cash', { availableCash });
 
-        // Get user's filled orders for stocks
-        const orders = await fetchUserOrders(userId);
+    // Get user's filled orders for stocks
+    const orders = await fetchUserOrders(userId);
+    log.info('Orders', { orders });
 
-        // Aggregate positions from orders
-        const rawPositions = aggregateUserPositions(orders);
+    // Aggregate positions from orders
+    const rawPositions = aggregateUserPositions(orders);
+    log.info('Raw positions', { rawPositions });
+    // Get unique instrument IDs that have positions
+    const instrumentIds = Object.keys(rawPositions).map(Number);
 
-        // Get unique instrument IDs that have positions
-        const instrumentIds = Object.keys(rawPositions).map(Number);
-
-        // Calculate enriched positions with market data
-        const positions = await calculatePositionValue(rawPositions, instrumentIds);
-
-        return {
-            totalValue: availableCash + positions.reduce((acc, p) => acc + p.value, 0),
-            availableCash,
-            positions,
-        };
-    } catch (error) {
-        log.error(error);
-        throw error;
-    }
+    // Calculate enriched positions with market data
+    const positions = await calculatePositionValue(rawPositions, instrumentIds);
+    log.info('Positions', { positions });
+    return {
+        totalValue: availableCash + positions.reduce((acc, p) => acc + p.value, 0),
+        availableCash,
+        positions,
+    };
 } 

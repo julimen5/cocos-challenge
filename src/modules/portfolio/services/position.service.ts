@@ -39,8 +39,6 @@ export async function fetchMarketData(instrumentIds: number[]): Promise<Map<numb
              CASE WHEN date::date = CURRENT_DATE THEN 0 ELSE 1 END,
              date DESC`;
 
-    console.log(marketData);
-
     return new Map(marketData.map(m => [m.instrumentid, m]));
 }
 
@@ -68,12 +66,9 @@ export function aggregateUserPositions(orders: Pick<Order, 'instrumentid' | 'siz
 }
 
 export const calculatePositionValue = async (rawPositions: Record<number, RawPosition>, instrumentIds: number[]) => {
-    console.log('rawPositions', rawPositions);
-    console.log('instrumentIds', instrumentIds);
     const marketDataMap = await fetchMarketData(instrumentIds);
-    console.log('marketDataMap', marketDataMap);
     const positions: Position[] = Object.entries(rawPositions)
-        .filter(([_, v]) => v.q !== 0 && v.qTotal > 0)
+        .filter(([_, v]) => v.q > 0 && v.qTotal > 0)
         .map(([instrumentid, v]) => {
             const market = marketDataMap.get(Number(instrumentid));
             if (!market) return null;
@@ -81,11 +76,8 @@ export const calculatePositionValue = async (rawPositions: Record<number, RawPos
             const avgPrice = v.qTotal !== 0 ? v.sumTotal / v.qTotal : 0;
             const currentPrice = Number(market.close ?? 0);
             const value = v.q * currentPrice;
-            const side: 'long' | 'short' = v.q >= 0 ? 'long' : 'short';
             const performance = avgPrice !== 0 ? ((currentPrice - avgPrice) / avgPrice) * 100 : 0;
-            const realPerformance = side === 'long'
-                ? performance
-                : avgPrice !== 0 ? ((avgPrice - currentPrice) / avgPrice) * 100 : 0;
+
 
             return {
                 instrumentid: Number(instrumentid),
@@ -94,8 +86,6 @@ export const calculatePositionValue = async (rawPositions: Record<number, RawPos
                 currentPrice,
                 value,
                 performance,
-                side,
-                realPerformance,
             };
         })
         .filter((p): p is NonNullable<typeof p> => Boolean(p));

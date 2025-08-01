@@ -1,6 +1,7 @@
 import { FastifyError, FastifyRequest, FastifyReply } from 'fastify';
 import { logger } from '@/lib/logger';
 import { createErrorResponse } from '@/lib/response';
+import { OrderError } from '@/modules/orders/order.errors';
 
 export async function errorHandler(
     error: FastifyError,
@@ -25,6 +26,12 @@ export async function errorHandler(
     if (error.message.includes('Prisma')) {
         return reply.status(500).send(
             createErrorResponse('Database error', 'DATABASE_ERROR')
+        );
+    }
+
+    if (error instanceof OrderError) {
+        return reply.status(400).send(
+            createErrorResponse(error.message, 'ORDER_ERROR')
         );
     }
 

@@ -12,7 +12,13 @@ export async function instrumentRoutes(fastify: FastifyInstance) {
             summary: 'Search instruments',
             tags: ['Instruments'],
             querystring: SearchInstrumentParamsSchema,
-            response: z.any()
+            response: z.object({
+                id: z.number(),
+                ticker: z.string(),
+                name: z.string(),
+                type: z.enum(['ACCIONES', 'MONEDA'])
+            }).partial().array(),
+            pagination: true,
         })
     }, async (request: FastifyRequest<{ Querystring: SearchInstrumentParams }>, reply) => {
         const { query, page, pageSize } = request.query;

@@ -1,16 +1,21 @@
-import { ZodSchema } from "zod";
+import z, { ZodSchema } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
-export function makeSuccessResponseSchema(zodSchema: ZodSchema<any>) {
+export function makeSuccessResponseSchema(zodSchema: ZodSchema<any>, pagination?: boolean) {
     return {
         type: "object",
         properties: {
             msg: { type: "string" },
             result: zodToJsonSchema(zodSchema, { target: "openApi3" }),
-            metadata: {
-                type: "object",
-                additionalProperties: true, // Allow any properties in metadata
-            },
+            ...(pagination && {
+                metadata: zodToJsonSchema(z.object({
+                    totalCount: z.number(),
+                    numberOfPages: z.number(),
+                    pageSize: z.number(),
+                    currentPage: z.number(),
+                    nextPage: z.number(),
+                }), { target: "openApi3" }),
+            }),
         },
     };
 }
@@ -36,6 +41,7 @@ export function makeRouteSchema({
     params,
     querystring,
     response,
+    pagination,
 }: {
     summary?: string;
     tags?: string[];
@@ -43,6 +49,7 @@ export function makeRouteSchema({
     params?: ZodSchema<any>;
     querystring?: ZodSchema<any>;
     response: ZodSchema<any>;
+    pagination?: boolean;
 }) {
     return {
         ...(summary && { summary }),
@@ -53,7 +60,7 @@ export function makeRouteSchema({
             querystring: zodToJsonSchema(querystring, { target: "openApi3" }),
         }),
         response: {
-            200: makeSuccessResponseSchema(response),
+            200: makeSuccessResponseSchema(response, pagination),
         },
     };
 }
