@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int    @id @default(autoincrement())
+  email         String?
+  accountnumber String?
+  orders        Order[]
+  
+  @@map("users")
+}
+
+enum InstrumentType {
+  ACCIONES
+  MONEDA
+}
+
+enum OrderType {
+  MARKET
+  LIMIT
+}
+
+enum OrderStatus {
+  NEW
+  FILLED
+  REJECTED
+  CANCELLED
+}
+
+model Instrument {
+  id         Int    @id @default(autoincrement())
+  ticker     String @unique
+  name       String
+  type       InstrumentType @default(ACCIONES)
+  orders     Order[]
+  marketData MarketData[]
+  
+  @@map("instruments")
+  @@index([ticker])
+  @@index([name])
+  @@index([ticker, name])
+}
+
+model Order {
+  id           Int      @id @default(autoincrement())
+  instrumentid Int
+  userid       Int
+  side         String  // 'BUY', 'SELL', 'CASH_IN', 'CASH_OUT'
+  size         Int     // Number of shares or cash amount
+  price        Decimal? @db.Decimal(10, 2) // Price per share
+  type         OrderType @default(MARKET)
+  status       OrderStatus @default(NEW)
+  datetime     DateTime?
+  reason       String?
+
+  // Relations
+  instrument   Instrument? @relation(fields: [instrumentid], references: [id])
+  user         User?       @relation(fields: [userid], references: [id])
+  
+  @@map("orders")
+}
+
+model MarketData {
+  id            Int     @id @default(autoincrement())
+  instrumentid  Int
+  high          Decimal? @db.Decimal(10, 2)
+  low           Decimal? @db.Decimal(10, 2)
+  open          Decimal? @db.Decimal(10, 2)
+  close         Decimal? @db.Decimal(10, 2)
+  previousclose Decimal? @db.Decimal(10, 2)
+  date          DateTime? @db.Date
+  
+  // Relations
+  instrument    Instrument @relation(fields: [instrumentid], references: [id])
+  
+  @@map("marketdata")
+}

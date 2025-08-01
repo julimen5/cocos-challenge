@@ -1,0 +1,33 @@
+{
+  "name": "trading-api",
+  "version": "1.0.0",
+  "description": "Cocos Trading Challenge API",
+  "scripts": {
+    "dev": "bun --watch src/server.ts",
+    "build": "bun build src/server.ts --outdir dist --target bun",
+    "start": "bun dist/server.js",
+    "db:generate": "bun prisma generate",
+    "db:migrate": "bun prisma migrate dev",
+    "db:studio": "bun prisma studio",
+    "test": "bun test",
+    "test:watch": "bun test --watch"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.4.0",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/swagger": "^8.12.0",
+    "@fastify/swagger-ui": "^2.1.0",
+    "@prisma/client": "^5.6.0",
+    "dayjs": "^1.11.13",
+    "dotenv": "^16.3.1",
+    "fastify": "^4.24.3",
+    "prisma": "^5.6.0",
+    "winston": "^3.11.0",
+    "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.24.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "@types/node": "^20.8.9"
+  }
+}
